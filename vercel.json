@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/Build/(.*)\\.js\\.gz",
+      "source": "/Build/(.*)\\.framework\\.js\\.gz",
       "headers": [
         {
           "key": "Content-Encoding",
@@ -17,7 +17,7 @@
       "source": "/Build/(.*)\\.data\\.gz",
       "headers": [
         {
-          "key": "Content-Encoding",
+          "key": "Content-Encoding", 
           "value": "gzip"
         },
         {
@@ -36,6 +36,15 @@
         {
           "key": "Content-Type",
           "value": "application/wasm"
+        }
+      ]
+    },
+    {
+      "source": "/Build/(.*)\\.loader\\.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
         }
       ]
     },
