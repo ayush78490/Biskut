@@ -1,43 +1,56 @@
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>The Chaos | Unity WebGL</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <style>
       html, body {
         margin: 0;
         padding: 0;
-        background: #000;
         height: 100%;
         width: 100%;
+        background: radial-gradient(circle, #1a1a1a, #000);
         overflow: hidden;
+        font-family: Arial, sans-serif;
       }
       #unity-canvas {
         width: 100vw;
         height: 100vh;
-        background: #231F20;
-        display: none; /* hide until loaded */
+        display: none;
       }
       #loading-screen {
         position: fixed;
-        top: 0; left: 0;
-        width: 100vw; height: 100vh;
+        inset: 0;
         display: flex;
-        align-items: center;
+        flex-direction: column;
         justify-content: center;
-        background: #111;
+        align-items: center;
+        background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
         color: #fff;
-        font-family: Arial, sans-serif;
-        font-size: 24px;
+        font-size: 1.5rem;
+        letter-spacing: 1.5px;
+      }
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 6px solid rgba(255, 255, 255, 0.2);
+        border-top: 6px solid #ff0077;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
     </style>
   </head>
   <body>
-    <!-- Custom Loading Screen -->
     <div id="loading-screen">
-      Loading Game...
+      <div class="spinner"></div>
+      <div>Loading The Chaos...</div>
     </div>
 
     <canvas id="unity-canvas" tabindex="-1"></canvas>
@@ -53,8 +66,8 @@
         productName: "The Chaos",
         productVersion: "1.0",
       }).then(() => {
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('unity-canvas').style.display = 'block';
+        document.getElementById("loading-screen").style.display = "none";
+        document.getElementById("unity-canvas").style.display = "block";
       });
     </script>
   </body>
