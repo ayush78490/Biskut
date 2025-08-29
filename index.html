@@ -1,73 +1,335 @@
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>The Chaos | Unity WebGL</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | The Chaos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-      html, body {
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+      
+      * {
         margin: 0;
         padding: 0;
-        height: 100%;
-        width: 100%;
-        background: radial-gradient(circle, #1a1a1a, #000);
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         overflow: hidden;
-        font-family: Arial, sans-serif;
       }
+
+      .game-container {
+        position: relative;
+        width: 960px;
+        height: 600px;
+        max-width: 95vw;
+        max-height: 95vh;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        background: #231F20;
+      }
+
       #unity-canvas {
-        width: 100vw;
-        height: 100vh;
-        display: none;
+        width: 100%;
+        height: 100%;
+        display: block;
+        border-radius: 16px;
       }
-      #loading-screen {
-        position: fixed;
-        inset: 0;
+
+      /* Loading Overlay */
+      .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
-        background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-        color: #fff;
-        font-size: 1.5rem;
-        letter-spacing: 1.5px;
+        justify-content: center;
+        z-index: 1000;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
       }
-      .spinner {
+
+      .loading-overlay.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      /* Game Logo */
+      .game-logo {
+        font-size: 3rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 2rem;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        animation: glow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes glow {
+        from { text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.1); }
+        to { text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 255, 255, 0.2); }
+      }
+
+      /* Loading Spinner */
+      .loading-spinner {
         width: 60px;
         height: 60px;
-        border: 6px solid rgba(255, 255, 255, 0.2);
-        border-top: 6px solid #ff0077;
+        margin-bottom: 2rem;
+        position: relative;
+      }
+
+      .spinner-ring {
+        width: 100%;
+        height: 100%;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid #fff;
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin-bottom: 20px;
       }
+
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+
+      /* Progress Bar */
+      .progress-container {
+        width: 300px;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+        backdrop-filter: blur(10px);
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #00f5ff, #0099ff);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+        box-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+        animation: progressGlow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes progressGlow {
+        from { box-shadow: 0 0 20px rgba(0, 245, 255, 0.5); }
+        to { box-shadow: 0 0 30px rgba(0, 245, 255, 0.8); }
+      }
+
+      /* Loading Text */
+      .loading-text {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-align: center;
+      }
+
+      .loading-details {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.875rem;
+        text-align: center;
+      }
+
+      /* Error State */
+      .error-message {
+        color: #ff6b6b;
+        background: rgba(255, 107, 107, 0.1);
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 107, 107, 0.2);
+        text-align: center;
+        font-weight: 600;
+        margin-top: 1rem;
+        backdrop-filter: blur(10px);
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .game-container {
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          max-width: none;
+          max-height: none;
+        }
+
+        #unity-canvas {
+          border-radius: 0;
+        }
+
+        .game-logo {
+          font-size: 2rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .progress-container {
+          width: 250px;
+        }
+
+        body {
+          background: #231F20;
+        }
+      }
+
+      /* Floating Particles Background */
+      .particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+      }
     </style>
   </head>
   <body>
-    <div id="loading-screen">
-      <div class="spinner"></div>
-      <div>Loading The Chaos...</div>
+    <div class="game-container">
+      <!-- Unity Canvas -->
+      <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+      
+      <!-- Loading Overlay -->
+      <div id="loading-overlay" class="loading-overlay">
+        <div class="particles">
+          <!-- Particles will be generated by JavaScript -->
+        </div>
+        
+        <div class="game-logo">THE CHAOS</div>
+        
+        <div class="loading-spinner">
+          <div class="spinner-ring"></div>
+        </div>
+        
+        <div class="progress-container">
+          <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+        </div>
+        
+        <div id="loading-text" class="loading-text">Initializing...</div>
+        <div id="loading-details" class="loading-details">Preparing the chaos</div>
+        
+        <div id="error-message" class="error-message" style="display: none;"></div>
+      </div>
     </div>
-
-    <canvas id="unity-canvas" tabindex="-1"></canvas>
 
     <script src="Build/chaosBuild.loader.js"></script>
     <script>
+      // Create floating particles
+      function createParticles() {
+        const particlesContainer = document.querySelector('.particles');
+        for (let i = 0; i < 20; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.animationDelay = Math.random() * 6 + 's';
+          particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+          particlesContainer.appendChild(particle);
+        }
+      }
+
+      // Mobile device detection and setup
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        const canvas = document.querySelector("#unity-canvas");
+        const container = document.querySelector(".game-container");
+        
+        container.style.width = "100vw";
+        container.style.height = "100vh";
+        container.style.borderRadius = "0";
+        container.style.maxWidth = "none";
+        container.style.maxHeight = "none";
+        
+        canvas.style.borderRadius = "0";
+        document.body.style.textAlign = "left";
+        document.body.style.background = "#231F20";
+      }
+
+      // Loading progress tracking
+      const progressBar = document.getElementById('progress-bar');
+      const loadingText = document.getElementById('loading-text');
+      const loadingDetails = document.getElementById('loading-details');
+      const errorMessage = document.getElementById('error-message');
+      const loadingOverlay = document.getElementById('loading-overlay');
+
+      const loadingMessages = [
+        { text: "Initializing...", detail: "Preparing the chaos" },
+        { text: "Loading framework...", detail: "Setting up the game engine" },
+        { text: "Loading assets...", detail: "Downloading game data" },
+        { text: "Compiling code...", detail: "Preparing WebAssembly" },
+        { text: "Almost ready...", detail: "Final preparations" }
+      ];
+
+      let currentMessageIndex = 0;
+
+      function updateLoadingMessage(progress) {
+        const messageIndex = Math.min(Math.floor(progress * loadingMessages.length / 100), loadingMessages.length - 1);
+        if (messageIndex !== currentMessageIndex) {
+          currentMessageIndex = messageIndex;
+          loadingText.textContent = loadingMessages[messageIndex].text;
+          loadingDetails.textContent = loadingMessages[messageIndex].detail;
+        }
+      }
+
+      // Create particles effect
+      createParticles();
+
+      // Unity instance creation with progress tracking
       createUnityInstance(document.querySelector("#unity-canvas"), {
-        dataUrl: "Build/chaosBuild.data.gz",
-        frameworkUrl: "Build/chaosBuild.framework.js.gz",
-        codeUrl: "Build/chaosBuild.wasm.gz",
+        dataUrl: "Build/chaosBuild.data",
+        frameworkUrl: "Build/chaosBuild.framework.js",
+        codeUrl: "Build/chaosBuild.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "The Chaos",
-        productVersion: "1.0",
-      }).then(() => {
-        document.getElementById("loading-screen").style.display = "none";
-        document.getElementById("unity-canvas").style.display = "block";
+        productVersion: "1.0"
+      }, (progress) => {
+        // Update progress bar
+        const percentage = Math.round(progress * 100);
+        progressBar.style.width = percentage + '%';
+        updateLoadingMessage(percentage);
+        
+        console.log(`Loading progress: ${percentage}%`);
+      }).then((unityInstance) => {
+        // Game loaded successfully
+        console.log('Unity game loaded successfully');
+        setTimeout(() => {
+          loadingOverlay.classList.add('hidden');
+        }, 500);
+      }).catch((error) => {
+        // Handle loading errors
+        console.error('Unity loading error:', error);
+        errorMessage.textContent = 'Failed to load the game. Please refresh and try again.';
+        errorMessage.style.display = 'block';
+        
+        // Hide loading elements
+        document.querySelector('.loading-spinner').style.display = 'none';
+        document.querySelector('.progress-container').style.display = 'none';
+        loadingText.style.display = 'none';
+        loadingDetails.style.display = 'none';
       });
     </script>
   </body>
